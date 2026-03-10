@@ -1,0 +1,35 @@
+[
+  {
+    "id": "max_loan_amount_constraint",
+    "enabled": true,
+    "order": 10,
+    "rule_type": "constraint",
+    "field": "requested_amount",
+    "op": "gt",
+    "value": 500000,
+    "action": "reject",
+    "message": "Constraint violated: requested amount exceeds maximum policy"
+  },
+  {
+    "id": "min_credit_constraint",
+    "enabled": true,
+    "order": 20,
+    "rule_type": "constraint",
+    "field": "credit_score",
+    "op": "lt",
+    "value": 600,
+    "action": "reject",
+    "message": "Constraint violated: credit score below minimum policy"
+  },
+  {
+    "id": "constraint_pass_fallback",
+    "enabled": true,
+    "order": 30,
+    "rule_type": "flow",
+    "field": "requested_amount",
+    "op": "gte",
+    "value": 0,
+    "action": "approve",
+    "message": "All constraints satisfied"
+  }
+]

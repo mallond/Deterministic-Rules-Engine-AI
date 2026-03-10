@@ -129,3 +129,19 @@ Run it:
 ```
 
 Result JSON is written to `Scorecard/result.json`.
+
+## Example Harness: Constraint
+
+A runnable constraint-rules example is included in `Constraint/`:
+
+- `Constraint/rules.json`
+- `Constraint/facts.json`
+- `Constraint/run.sh`
+
+Run it:
+
+```bash
+./Constraint/run.sh
+```
+
+Result JSON is written to `Constraint/result.json`.
