@@ -81,3 +81,19 @@ Run it:
 ```
 
 Result JSON is written to `DecisionTable/result.json`.
+
+## Example Harness: DecisionTree
+
+A runnable decision-tree example is included in `DecisionTree/`:
+
+- `DecisionTree/rules.json`
+- `DecisionTree/facts.json`
+- `DecisionTree/run.sh`
+
+Run it:
+
+```bash
+./DecisionTree/run.sh
+```
+
+Result JSON is written to `DecisionTree/result.json`.
