@@ -1,0 +1,35 @@
+[
+  {
+    "id": "if_vip_then_approve",
+    "enabled": true,
+    "order": 10,
+    "rule_type": "if_then",
+    "field": "customer_tier",
+    "op": "eq",
+    "value": "vip",
+    "action": "approve",
+    "message": "VIP customer auto-approved"
+  },
+  {
+    "id": "if_low_credit_then_reject",
+    "enabled": true,
+    "order": 20,
+    "rule_type": "if_then",
+    "field": "credit_score",
+    "op": "lt",
+    "value": 620,
+    "action": "reject",
+    "message": "Low credit score rejected"
+  },
+  {
+    "id": "if_large_amount_then_review",
+    "enabled": true,
+    "order": 30,
+    "rule_type": "if_then",
+    "field": "requested_amount",
+    "op": "gt",
+    "value": 300000,
+    "action": "review",
+    "message": "Large request routed to review"
+  }
+]

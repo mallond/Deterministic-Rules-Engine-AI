@@ -97,3 +97,19 @@ Run it:
 ```
 
 Result JSON is written to `DecisionTree/result.json`.
+
+## Example Harness: ifThen
+
+A runnable If–Then example is included in `ifThen/`:
+
+- `ifThen/rules.json`
+- `ifThen/facts.json`
+- `ifThen/run.sh`
+
+Run it:
+
+```bash
+./ifThen/run.sh
+```
+
+Result JSON is written to `ifThen/result.json`.

@@ -1,0 +1,7 @@
+{
+  "applicant_id": "APP-3001",
+  "customer_tier": "vip",
+  "credit_score": 680,
+  "requested_amount": 120000,
+  "loan_type": "personal"
+}
