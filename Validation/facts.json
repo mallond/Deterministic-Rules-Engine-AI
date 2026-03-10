@@ -1,0 +1,6 @@
+{
+  "applicant_id": "APP-6001",
+  "email": "applicant@example.com",
+  "ssn": "123-45-6789",
+  "loan_type": "mortgage"
+}

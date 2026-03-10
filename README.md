@@ -145,3 +145,19 @@ Run it:
 ```
 
 Result JSON is written to `Constraint/result.json`.
+
+## Example Harness: Validation
+
+A runnable validation-rules example is included in `Validation/`:
+
+- `Validation/rules.json`
+- `Validation/facts.json`
+- `Validation/run.sh`
+
+Run it:
+
+```bash
+./Validation/run.sh
+```
+
+Result JSON is written to `Validation/result.json`.

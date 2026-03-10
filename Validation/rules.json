@@ -1,0 +1,35 @@
+[
+  {
+    "id": "email_required",
+    "enabled": true,
+    "order": 10,
+    "rule_type": "validation",
+    "field": "email",
+    "op": "eq",
+    "value": null,
+    "action": "reject",
+    "message": "Validation failed: email is required"
+  },
+  {
+    "id": "ssn_length_check",
+    "enabled": true,
+    "order": 20,
+    "rule_type": "validation",
+    "field": "ssn",
+    "op": "contains",
+    "value": "-",
+    "action": "continue",
+    "message": "Validation passed: SSN has expected format separator"
+  },
+  {
+    "id": "validation_pass_fallback",
+    "enabled": true,
+    "order": 30,
+    "rule_type": "flow",
+    "field": "applicant_id",
+    "op": "starts_with",
+    "value": "APP-",
+    "action": "approve",
+    "message": "All required validations passed"
+  }
+]

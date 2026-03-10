@@ -1,0 +1,18 @@
+{
+  "status": "APPROVED",
+  "fired_rules": [
+    "ssn_length_check",
+    "validation_pass_fallback"
+  ],
+  "messages": [
+    "Validation passed: SSN has expected format separator",
+    "All required validations passed"
+  ],
+  "total_score": 0,
+  "context": {
+    "email": "applicant@example.com",
+    "loan_type": "mortgage",
+    "applicant_id": "APP-6001",
+    "ssn": "123-45-6789"
+  }
+}
