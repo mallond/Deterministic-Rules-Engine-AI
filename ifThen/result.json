@@ -1,0 +1,17 @@
+{
+  "status": "APPROVED",
+  "fired_rules": [
+    "if_vip_then_approve"
+  ],
+  "messages": [
+    "VIP customer auto-approved"
+  ],
+  "total_score": 0,
+  "context": {
+    "requested_amount": 120000,
+    "customer_tier": "vip",
+    "applicant_id": "APP-3001",
+    "loan_type": "personal",
+    "credit_score": 680
+  }
+}

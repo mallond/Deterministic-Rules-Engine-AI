@@ -1,0 +1,19 @@
+{
+  "status": "APPROVED",
+  "fired_rules": [
+    "on_submit_high_amount",
+    "normal_submit_approve"
+  ],
+  "messages": [
+    "Event matched: application submitted",
+    "Action: standard submission approved"
+  ],
+  "total_score": 0,
+  "context": {
+    "_event": "application_submitted",
+    "credit_score": 705,
+    "loan_type": "mortgage",
+    "requested_amount": 190000,
+    "applicant_id": "APP-7001"
+  }
+}

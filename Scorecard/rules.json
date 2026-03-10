@@ -1,0 +1,38 @@
+[
+  {
+    "id": "score_income",
+    "enabled": true,
+    "order": 10,
+    "rule_type": "scorecard",
+    "field": "annual_income",
+    "op": "gte",
+    "value": 100000,
+    "action": "continue",
+    "score": 40,
+    "message": "Income score +40"
+  },
+  {
+    "id": "score_credit",
+    "enabled": true,
+    "order": 20,
+    "rule_type": "scorecard",
+    "field": "credit_score",
+    "op": "gte",
+    "value": 700,
+    "action": "continue",
+    "score": 35,
+    "message": "Credit score +35"
+  },
+  {
+    "id": "score_dti",
+    "enabled": true,
+    "order": 30,
+    "rule_type": "scorecard",
+    "field": "dti",
+    "op": "lt",
+    "value": 0.4,
+    "action": "continue",
+    "score": 25,
+    "message": "DTI score +25"
+  }
+]

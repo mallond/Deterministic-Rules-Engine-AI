@@ -1,17 +1,25 @@
-## The World's Smallest Rules Engine
+## Rules CLI (Rust, Excel-First)
 
-## Rust CLI Upgrade (Excel-First)
+A Rust-based rules engine focused on spreadsheet-managed business rules and compiled native executables.
 
-This repo now includes a Rust-based CLI (`rules-cli`) designed for complex, spreadsheet-managed rules and native executable builds.
+## Features
 
-### What’s new
-- Excel-backed rule loading (`.xlsx`) for business-managed rule tables
-- JSON-backed fallback for rules-as-code workflows
-- CLI-driven execution (`run`) for terminal/CI use
-- Scaffold command to generate a starter rule template + sample facts
-- Native executable output via `cargo build --release`
+- Excel-backed rule loading (`.xlsx`, `.xlsm`, `.xls`)
+- JSON rule loading (`.json`)
+- CLI execution against JSON facts
+- Native executable builds (`cargo build --release`)
+- Multi-model rule support:
+  1. Decision Table
+  2. Decision Tree
+  3. If–Then (Production)
+  4. Scorecard
+  5. Constraint
+  6. Validation
+  7. Event–Condition–Action (ECA)
+  8. Flow
 
-### Rule sheet columns
+## Rule Sheet Columns
+
 Use the first worksheet with these headers:
 
 - `id` (string, unique)
@@ -24,136 +32,167 @@ Use the first worksheet with these headers:
 - `action` (`continue`, `approve`, `reject`, `review`)
 - `score` (optional integer, used by scorecard rules)
 - `message` (optional)
-- `next_rule` (optional explicit rule-chain jump)
-- `next_true` (optional, decision tree true branch)
-- `next_false` (optional, decision tree false branch)
+- `next_rule` (optional explicit chain jump)
+- `next_true` (optional decision-tree true branch)
+- `next_false` (optional decision-tree false branch)
 
-### Supported rule models
-
-1. Decision Table
-2. Decision Tree
-3. If–Then (Production)
-4. Scorecard
-5. Constraint
-6. Validation
-7. Event–Condition–Action (use `_event` in facts for event payload)
-8. Flow
-
-### Quick start
+## Quick Start
 
 ```bash
-# 1) Build CLI
+# Build binary
 cargo build --release
 
-# 2) Generate template files
+# Generate template + sample facts
 cargo run -- scaffold --out-dir ./examples
-# Open examples/rules-template.csv in Excel, edit rules, save as .xlsx
+# Open examples/rules-template.csv in Excel and save as rules.xlsx
 
-# 3) Execute with facts JSON
+# Run rules
 cargo run -- run --rules ./examples/rules.xlsx --facts ./examples/sample-facts.json
 ```
 
-### Build executable
+## Executable
 
 ```bash
-cargo build --release
 ./target/release/rules-cli run --rules ./examples/rules.xlsx --facts ./examples/sample-facts.json
 ```
 
----
+## Test Harness
 
-## Legacy TypeScript Engine (kept for reference)
-
-A small functional Rule Engine - simple maybe an understatement... 
-
-![image](https://github.com/mallond/rules/assets/993459/b1fa993f-00ec-4d3a-b28e-816e581e2135)
-
-
-History
-- 02/08/16 Original Javascript without AI
-- 06/25/24 New Typescript version with AI
-
-
-
-## Intro
-
-Simplicity is elegance. This rule engine is NOT forward chaining, backward chaining, nor is this an inference engine. What it is, is a pragmatic reactive engine. Simply stated, when there is a condition, execute an action -- most assuredly in a stateless manner. 
-
-Prime directives, and ables ...
-- Stateless
-- Simple input, output, and process
-- Asynchronous non-blocking invocations
-- Rules to be self contained and serializable to a database (persistable)
-- Rules to be versioned (versionable)
-- Rules to be inventoried and stored in a library (sharable)
-- Rules can be modified on-the-fly (adaptable)
-- Rules can be unit tested independently (testable)
-- Crazy fast
-
-#####
-
-[Martin Fowler on Rule Engines](http://martinfowler.com/bliki/RulesEngine.html)
-
-# AI 06/25/24
-Much has changed in the last 9 years this simple example was created. We are in the AI Age and
-Prompts can do much of the work. It is the intention of this code to be used with AI prompts to 
-generate versionalble rule-sets. 
-
-```
-// Rule Abilities 
-{ables: [persistable, versionable, shareable, adaptable, testable, chainable, reusable, extensible]}
+```bash
+./scripts/test-harness.sh
 ```
 
-# AI Assisted Code Generation Claude Sonnet 3.5
+Reports are written to `reports/tests/`:
+- `summary.txt`
+- `cargo-test.log`
+- `examples.log`
 
-## Upload Example Code and let AI create executable examples
+The harness also executes every example `run.sh` and validates that each produces a non-empty `result.json`.
 
-![image](https://github.com/mallond/rules/assets/993459/360fb2fd-ec77-42c8-8e4b-ad29e291fb67)
+## Example Harness: DecisionTable
 
-## Cloude Sonnet 3.5 Generated New Code
+A runnable example is included in `DecisionTable/`:
 
-![image](https://github.com/mallond/rules/assets/993459/80cc55a6-5ffc-4fdf-8c12-b9d6edfc7f42)
+- `DecisionTable/rules.json`
+- `DecisionTable/facts.json`
+- `DecisionTable/run.sh`
 
-## Done-Done, like it Worked! 
-- Use your imagination
-- Upgrade Existing Code
-- Use AI
+Run it:
 
-  
+```bash
+./DecisionTable/run.sh
+```
 
-## A few Use Cases for Usage
+Result JSON is written to `DecisionTable/result.json`.
 
-- Validations
-- Mappings
-- Calculations
-- Batch processing
-- Automated business rules - decision engine
-- Automation of sequential events and process
-- Home security, sprinkler systems, and darn maybe your car...
+## Example Harness: DecisionTree
 
-## Benefits
+A runnable decision-tree example is included in `DecisionTree/`:
 
-- Repository of rules
-- Traceability
-- Modify the rule not the code
-- Dynamic changeability - conditions change so do the execution
-- Easy to understand and modify
-- Extensible
-- Maintainable
-- Reusable
-- Chainable  
-- Micro foot print and scalable
+- `DecisionTree/rules.json`
+- `DecisionTree/facts.json`
+- `DecisionTree/run.sh`
 
-## Design - IPO (Input Process Output)
+Run it:
 
+```bash
+./DecisionTree/run.sh
+```
 
-<img src="https://lh6.googleusercontent.com/-_xFQNsVja9s/U1XsZBOVi0I/AAAAAAAAG1I/a4Le6ruZDqU/w674-h502-no/rulesEngine.png" style="position:absolute; right:0px;" width="300px" />
+Result JSON is written to `DecisionTree/result.json`.
 
+## Example Harness: ifThen
 
-![image](https://github.com/mallond/rules/assets/993459/c5b2c6ef-666a-4eb7-8ac6-8d2b879f0dc0)
+A runnable If–Then example is included in `ifThen/`:
 
- 
+- `ifThen/rules.json`
+- `ifThen/facts.json`
+- `ifThen/run.sh`
 
+Run it:
 
+```bash
+./ifThen/run.sh
+```
 
+Result JSON is written to `ifThen/result.json`.
 
+## Example Harness: Scorecard
+
+A runnable scorecard example is included in `Scorecard/`:
+
+- `Scorecard/rules.json`
+- `Scorecard/facts.json`
+- `Scorecard/run.sh`
+
+Run it:
+
+```bash
+./Scorecard/run.sh
+```
+
+Result JSON is written to `Scorecard/result.json`.
+
+## Example Harness: Constraint
+
+A runnable constraint-rules example is included in `Constraint/`:
+
+- `Constraint/rules.json`
+- `Constraint/facts.json`
+- `Constraint/run.sh`
+
+Run it:
+
+```bash
+./Constraint/run.sh
+```
+
+Result JSON is written to `Constraint/result.json`.
+
+## Example Harness: Validation
+
+A runnable validation-rules example is included in `Validation/`:
+
+- `Validation/rules.json`
+- `Validation/facts.json`
+- `Validation/run.sh`
+
+Run it:
+
+```bash
+./Validation/run.sh
+```
+
+Result JSON is written to `Validation/result.json`.
+
+## Example Harness: ECA
+
+A runnable Event–Condition–Action example is included in `ECA/`:
+
+- `ECA/rules.json`
+- `ECA/facts.json`
+- `ECA/run.sh`
+
+Run it:
+
+```bash
+./ECA/run.sh
+```
+
+Result JSON is written to `ECA/result.json`.
+
+## Example Harness: Flow
+
+A runnable flow-rules example is included in `Flow/`:
+
+- `Flow/rules.json`
+- `Flow/facts.json`
+- `Flow/run.sh`
+
+Run it:
+
+```bash
+./Flow/run.sh
+```
+
+Result JSON is written to `Flow/result.json`.

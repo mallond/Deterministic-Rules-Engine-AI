@@ -1,0 +1,36 @@
+[
+  {
+    "id": "on_submit_high_amount",
+    "enabled": true,
+    "order": 10,
+    "rule_type": "eca",
+    "field": "_event",
+    "op": "eq",
+    "value": "application_submitted",
+    "action": "continue",
+    "message": "Event matched: application submitted",
+    "next_rule": "high_amount_review"
+  },
+  {
+    "id": "high_amount_review",
+    "enabled": true,
+    "order": 20,
+    "rule_type": "eca",
+    "field": "requested_amount",
+    "op": "gt",
+    "value": 250000,
+    "action": "review",
+    "message": "Condition matched: high amount after submit event"
+  },
+  {
+    "id": "normal_submit_approve",
+    "enabled": true,
+    "order": 30,
+    "rule_type": "flow",
+    "field": "_event",
+    "op": "eq",
+    "value": "application_submitted",
+    "action": "approve",
+    "message": "Action: standard submission approved"
+  }
+]

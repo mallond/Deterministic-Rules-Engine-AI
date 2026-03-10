@@ -1,0 +1,21 @@
+{
+  "status": "APPROVED",
+  "fired_rules": [
+    "root_credit_gate",
+    "income_gate",
+    "approve_path"
+  ],
+  "messages": [
+    "Credit score passes root gate",
+    "Income passes second gate",
+    "Approved via decision tree"
+  ],
+  "total_score": 0,
+  "context": {
+    "annual_income": 110000,
+    "applicant_id": "APP-2001",
+    "credit_score": 740,
+    "loan_type": "mortgage",
+    "requested_amount": 220000
+  }
+}

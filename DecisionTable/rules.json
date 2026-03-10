@@ -1,0 +1,47 @@
+[
+  {
+    "id": "income_check",
+    "enabled": true,
+    "order": 10,
+    "rule_type": "decision_table",
+    "field": "annual_income",
+    "op": "gte",
+    "value": 100000,
+    "action": "continue",
+    "message": "Income meets preferred threshold",
+    "next_rule": "credit_check"
+  },
+  {
+    "id": "credit_check",
+    "enabled": true,
+    "order": 20,
+    "rule_type": "decision_table",
+    "field": "credit_score",
+    "op": "gte",
+    "value": 700,
+    "action": "approve",
+    "message": "Credit score strong"
+  },
+  {
+    "id": "high_amount_review",
+    "enabled": true,
+    "order": 30,
+    "rule_type": "decision_table",
+    "field": "requested_amount",
+    "op": "gt",
+    "value": 250000,
+    "action": "review",
+    "message": "Large amount requires manual review"
+  },
+  {
+    "id": "fallback_reject",
+    "enabled": true,
+    "order": 40,
+    "rule_type": "decision_table",
+    "field": "credit_score",
+    "op": "lt",
+    "value": 620,
+    "action": "reject",
+    "message": "Credit score below policy minimum"
+  }
+]

@@ -1,0 +1,61 @@
+[
+  {
+    "id": "root_credit_gate",
+    "enabled": true,
+    "order": 10,
+    "rule_type": "decision_tree",
+    "field": "credit_score",
+    "op": "gte",
+    "value": 700,
+    "action": "continue",
+    "message": "Credit score passes root gate",
+    "next_true": "income_gate",
+    "next_false": "reject_low_credit"
+  },
+  {
+    "id": "income_gate",
+    "enabled": true,
+    "order": 20,
+    "rule_type": "decision_tree",
+    "field": "annual_income",
+    "op": "gte",
+    "value": 90000,
+    "action": "continue",
+    "message": "Income passes second gate",
+    "next_true": "approve_path",
+    "next_false": "review_path"
+  },
+  {
+    "id": "approve_path",
+    "enabled": true,
+    "order": 30,
+    "rule_type": "flow",
+    "field": "requested_amount",
+    "op": "lte",
+    "value": 300000,
+    "action": "approve",
+    "message": "Approved via decision tree"
+  },
+  {
+    "id": "review_path",
+    "enabled": true,
+    "order": 40,
+    "rule_type": "flow",
+    "field": "requested_amount",
+    "op": "gt",
+    "value": 300000,
+    "action": "review",
+    "message": "Income below preferred level, send to manual review"
+  },
+  {
+    "id": "reject_low_credit",
+    "enabled": true,
+    "order": 50,
+    "rule_type": "flow",
+    "field": "credit_score",
+    "op": "lt",
+    "value": 700,
+    "action": "reject",
+    "message": "Rejected due to low credit score"
+  }
+]

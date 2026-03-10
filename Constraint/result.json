@@ -1,0 +1,16 @@
+{
+  "status": "APPROVED",
+  "fired_rules": [
+    "constraint_pass_fallback"
+  ],
+  "messages": [
+    "All constraints satisfied"
+  ],
+  "total_score": 0,
+  "context": {
+    "applicant_id": "APP-5001",
+    "loan_type": "mortgage",
+    "credit_score": 710,
+    "requested_amount": 275000
+  }
+}

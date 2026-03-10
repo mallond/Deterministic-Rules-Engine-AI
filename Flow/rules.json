@@ -1,0 +1,36 @@
+[
+  {
+    "id": "route_by_amount",
+    "enabled": true,
+    "order": 10,
+    "rule_type": "flow",
+    "field": "requested_amount",
+    "op": "gt",
+    "value": 250000,
+    "action": "continue",
+    "message": "Flow step: high amount route",
+    "next_rule": "manual_review_step"
+  },
+  {
+    "id": "manual_review_step",
+    "enabled": true,
+    "order": 20,
+    "rule_type": "flow",
+    "field": "requested_amount",
+    "op": "gt",
+    "value": 250000,
+    "action": "review",
+    "message": "Flow outcome: manual review"
+  },
+  {
+    "id": "auto_approve_step",
+    "enabled": true,
+    "order": 30,
+    "rule_type": "flow",
+    "field": "requested_amount",
+    "op": "lte",
+    "value": 250000,
+    "action": "approve",
+    "message": "Flow outcome: auto-approve"
+  }
+]

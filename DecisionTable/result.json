@@ -1,0 +1,19 @@
+{
+  "status": "APPROVED",
+  "fired_rules": [
+    "income_check",
+    "credit_check"
+  ],
+  "messages": [
+    "Income meets preferred threshold",
+    "Credit score strong"
+  ],
+  "total_score": 0,
+  "context": {
+    "credit_score": 735,
+    "requested_amount": 180000,
+    "loan_type": "mortgage",
+    "applicant_id": "APP-1001",
+    "annual_income": 120000
+  }
+}

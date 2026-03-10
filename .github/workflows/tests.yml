@@ -1,0 +1,27 @@
+name: rust-tests
+
+on:
+  push:
+    branches: ["master", "dev"]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run Rust test harness
+        run: ./scripts/test-harness.sh
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rust-test-reports
+          path: reports/tests
