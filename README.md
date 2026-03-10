@@ -199,14 +199,14 @@ Run it:
 
 Result JSON is written to `Flow/result.json`.
 
-## Concept UI: Decision Table
+## Docs UI: Decision Table
 
-A lightweight browser UI concept is included in `DecisionTableUI/`.
+A lightweight browser UI concept is included in `docs/` and published via GitHub Pages.
 
 Run it locally:
 
 ```bash
-./DecisionTableUI/run-ui.sh
+./docs/run-ui.sh
 ```
 
 Then open `http://localhost:8787`.

@@ -4,7 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 PORT="${1:-8787}"
 
-cd "$ROOT_DIR/DecisionTableUI"
+cd "$ROOT_DIR/docs"
 
-echo "Starting DecisionTable UI at http://localhost:${PORT}"
+echo "Starting docs UI at http://localhost:${PORT}"
 python3 -m http.server "$PORT"
