@@ -1,4 +1,4 @@
-name: test-harness
+name: rust-tests
 
 on:
   push:
@@ -16,21 +16,12 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: "20"
-          cache: "npm"
-
-      - name: Install Node dependencies
-        run: npm ci
-
-      - name: Run unified test harness
+      - name: Run Rust test harness
         run: ./scripts/test-harness.sh
 
       - name: Upload test reports
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: test-reports
+          name: rust-test-reports
           path: reports/tests
