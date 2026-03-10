@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Decision Table UI (Concept)</title>
+  <style>
+    body { font-family: Inter, system-ui, Arial, sans-serif; margin: 24px; color: #1f2937; }
+    h1 { margin-bottom: 8px; }
+    .muted { color: #6b7280; margin-bottom: 16px; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .card { border: 1px solid #e5e7eb; border-radius: 10px; padding: 16px; background: #fff; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { border: 1px solid #e5e7eb; padding: 8px; text-align: left; }
+    th { background: #f9fafb; }
+    input { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #d1d5db; border-radius: 8px; }
+    .row { margin-bottom: 10px; }
+    .label { font-size: 12px; color: #6b7280; margin-bottom: 4px; }
+    button { background: #111827; color: white; border: 0; padding: 10px 14px; border-radius: 8px; cursor: pointer; }
+    button:hover { background: #374151; }
+    pre { background: #0f172a; color: #e2e8f0; padding: 12px; border-radius: 8px; overflow-x: auto; }
+    .badge { display: inline-block; padding: 4px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .ok { background: #dcfce7; color: #166534; }
+    .warn { background: #fef3c7; color: #92400e; }
+    .bad { background: #fee2e2; color: #991b1b; }
+  </style>
+</head>
+<body>
+  <h1>Decision Table UI (Concept)</h1>
+  <div class="muted">Edit sample facts, click <b>Run Decision Table</b>, and see the evaluated output.</div>
+
+  <div class="grid">
+    <div class="card">
+      <h3>Decision Table (Sample Rules)</h3>
+      <table id="rulesTable">
+        <thead>
+          <tr>
+            <th>order</th>
+            <th>field</th>
+            <th>op</th>
+            <th>value</th>
+            <th>action</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <h3>Facts Input</h3>
+      <div class="row"><div class="label">annual_income</div><input id="annual_income" value="120000" /></div>
+      <div class="row"><div class="label">credit_score</div><input id="credit_score" value="735" /></div>
+      <div class="row"><div class="label">requested_amount</div><input id="requested_amount" value="180000" /></div>
+      <div class="row"><div class="label">loan_type</div><input id="loan_type" value="mortgage" /></div>
+      <button id="runBtn">Run Decision Table</button>
+      <div style="margin-top: 12px;" id="statusLine"></div>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top: 20px;">
+    <h3>Output</h3>
+    <pre id="output"></pre>
+  </div>
+
+  <script>
+    const rules = [
+      { id: "income_check", enabled: true, order: 10, field: "annual_income", op: "gte", value: 100000, action: "continue", message: "Income meets preferred threshold", next_rule: "credit_check" },
+      { id: "credit_check", enabled: true, order: 20, field: "credit_score", op: "gte", value: 700, action: "approve", message: "Credit score strong" },
+      { id: "high_amount_review", enabled: true, order: 30, field: "requested_amount", op: "gt", value: 250000, action: "review", message: "Large amount requires manual review" },
+      { id: "fallback_reject", enabled: true, order: 40, field: "credit_score", op: "lt", value: 620, action: "reject", message: "Credit score below policy minimum" }
+    ];
+
+    const tbody = document.querySelector("#rulesTable tbody");
+    for (const r of rules) {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${r.order}</td><td>${r.field}</td><td>${r.op}</td><td>${r.value}</td><td>${r.action}</td>`;
+      tbody.appendChild(tr);
+    }
+
+    function toNum(v) {
+      const n = Number(v);
+      return Number.isNaN(n) ? v : n;
+    }
+
+    function evalRule(left, op, right) {
+      switch (op) {
+        case "eq": return left === right;
+        case "ne": return left !== right;
+        case "gt": return Number(left) > Number(right);
+        case "gte": return Number(left) >= Number(right);
+        case "lt": return Number(left) < Number(right);
+        case "lte": return Number(left) <= Number(right);
+        case "contains": return String(left).includes(String(right));
+        case "starts_with": return String(left).startsWith(String(right));
+        case "ends_with": return String(left).endsWith(String(right));
+        default: return false;
+      }
+    }
+
+    function runEngine(facts) {
+      const byId = new Map(rules.filter(r => r.enabled).map(r => [r.id, r]));
+      const sorted = [...byId.values()].sort((a, b) => a.order - b.order);
+      let current = sorted[0]?.id;
+      let status = "NO_MATCH";
+      const fired_rules = [];
+      const messages = [];
+
+      while (current) {
+        const rule = byId.get(current);
+        if (!rule) break;
+
+        const candidate = facts[rule.field] ?? null;
+        if (evalRule(candidate, rule.op, rule.value)) {
+          fired_rules.push(rule.id);
+          if (rule.message) messages.push(rule.message);
+          if (rule.action !== "continue") {
+            status = rule.action.toUpperCase();
+            break;
+          }
+          current = rule.next_rule || sorted.find(r => r.order > rule.order)?.id || null;
+        } else {
+          current = sorted.find(r => r.order > rule.order)?.id || null;
+        }
+      }
+
+      return { status, fired_rules, messages, context: facts };
+    }
+
+    document.getElementById("runBtn").addEventListener("click", () => {
+      const facts = {
+        annual_income: toNum(document.getElementById("annual_income").value),
+        credit_score: toNum(document.getElementById("credit_score").value),
+        requested_amount: toNum(document.getElementById("requested_amount").value),
+        loan_type: document.getElementById("loan_type").value
+      };
+
+      const result = runEngine(facts);
+      document.getElementById("output").textContent = JSON.stringify(result, null, 2);
+
+      const cls = result.status === "APPROVE" ? "ok" : (result.status === "REVIEW" ? "warn" : (result.status === "REJECT" ? "bad" : ""));
+      document.getElementById("statusLine").innerHTML = `<span class="badge ${cls}">Status: ${result.status}</span>`;
+    });
+
+    document.getElementById("runBtn").click();
+  </script>
+</body>
+</html>

@@ -198,3 +198,17 @@ Run it:
 ```
 
 Result JSON is written to `Flow/result.json`.
+
+## Concept UI: Decision Table
+
+A lightweight browser UI concept is included in `DecisionTableUI/`.
+
+Run it locally:
+
+```bash
+./DecisionTableUI/run-ui.sh
+```
+
+Then open `http://localhost:8787`.
+
+Use the form inputs and click **Run Decision Table** to execute the sample decision table and see output instantly.
