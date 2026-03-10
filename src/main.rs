@@ -730,4 +730,125 @@ mod tests {
         assert_eq!(result.total_score, 70);
         assert_eq!(result.status, "SCORECARD");
     }
+
+    #[test]
+    fn supports_constraint_rules() {
+        let rules = vec![Rule {
+            id: "max_amount".into(),
+            enabled: true,
+            order: 10,
+            rule_type: RuleType::Constraint,
+            field: "requested_amount".into(),
+            op: Operator::Gt,
+            value: json!(500000),
+            action: Action::Reject,
+            score: 0,
+            message: Some("Amount exceeds policy limit".into()),
+            next_rule: None,
+            next_true: None,
+            next_false: None,
+        }];
+
+        let result = execute_rules(rules, facts(json!({"requested_amount": 600000})), None)
+            .expect("execution should pass");
+
+        assert_eq!(result.status, "REJECTED");
+        assert_eq!(result.fired_rules, vec!["max_amount"]);
+    }
+
+    #[test]
+    fn supports_validation_rules() {
+        let rules = vec![Rule {
+            id: "email_required".into(),
+            enabled: true,
+            order: 10,
+            rule_type: RuleType::Validation,
+            field: "email".into(),
+            op: Operator::Eq,
+            value: json!(null),
+            action: Action::Reject,
+            score: 0,
+            message: Some("Email is required".into()),
+            next_rule: None,
+            next_true: None,
+            next_false: None,
+        }];
+
+        let result = execute_rules(rules, facts(json!({"email": null})), None)
+            .expect("execution should pass");
+
+        assert_eq!(result.status, "REJECTED");
+        assert_eq!(result.messages, vec!["Email is required"]);
+    }
+
+    #[test]
+    fn supports_eca_rules() {
+        let rules = vec![Rule {
+            id: "on_submit".into(),
+            enabled: true,
+            order: 10,
+            rule_type: RuleType::Eca,
+            field: "_event".into(),
+            op: Operator::Eq,
+            value: json!("application_submitted"),
+            action: Action::Review,
+            score: 0,
+            message: Some("Submitted event captured".into()),
+            next_rule: None,
+            next_true: None,
+            next_false: None,
+        }];
+
+        let result = execute_rules(
+            rules,
+            facts(json!({"_event": "application_submitted"})),
+            None,
+        )
+        .expect("execution should pass");
+
+        assert_eq!(result.status, "REVIEW");
+        assert_eq!(result.fired_rules, vec!["on_submit"]);
+    }
+
+    #[test]
+    fn supports_flow_rules() {
+        let rules = vec![
+            Rule {
+                id: "route_high".into(),
+                enabled: true,
+                order: 10,
+                rule_type: RuleType::Flow,
+                field: "requested_amount".into(),
+                op: Operator::Gt,
+                value: json!(250000),
+                action: Action::Continue,
+                score: 0,
+                message: None,
+                next_rule: Some("manual_review".into()),
+                next_true: None,
+                next_false: None,
+            },
+            Rule {
+                id: "manual_review".into(),
+                enabled: true,
+                order: 20,
+                rule_type: RuleType::Flow,
+                field: "requested_amount".into(),
+                op: Operator::Gt,
+                value: json!(250000),
+                action: Action::Review,
+                score: 0,
+                message: Some("Routed to manual review".into()),
+                next_rule: None,
+                next_true: None,
+                next_false: None,
+            },
+        ];
+
+        let result = execute_rules(rules, facts(json!({"requested_amount": 300000})), None)
+            .expect("execution should pass");
+
+        assert_eq!(result.status, "REVIEW");
+        assert_eq!(result.fired_rules, vec!["route_high", "manual_review"]);
+    }
 }
