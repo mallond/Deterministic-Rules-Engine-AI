@@ -4,6 +4,7 @@ set -euo pipefail
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 REPORT_DIR="${ROOT_DIR}/reports/tests"
 RUST_LOG="${REPORT_DIR}/cargo-test.log"
+EXAMPLES_LOG="${REPORT_DIR}/examples.log"
 SUMMARY="${REPORT_DIR}/summary.txt"
 
 mkdir -p "$REPORT_DIR"
@@ -45,11 +46,60 @@ else
   } >> "$SUMMARY"
 fi
 
+echo "Running example harness validations..." | tee "$EXAMPLES_LOG"
+EXAMPLE_STATUS=0
+examples=(
+  "DecisionTable"
+  "DecisionTree"
+  "ifThen"
+  "Scorecard"
+  "Constraint"
+  "Validation"
+  "ECA"
+  "Flow"
+)
+
+for example in "${examples[@]}"; do
+  script_path="${ROOT_DIR}/${example}/run.sh"
+  result_path="${ROOT_DIR}/${example}/result.json"
+
+  if [[ ! -x "$script_path" ]]; then
+    echo "[FAIL] ${example}: missing executable run script (${script_path})" | tee -a "$EXAMPLES_LOG"
+    EXAMPLE_STATUS=1
+    continue
+  fi
+
+  set +e
+  "$script_path" >> "$EXAMPLES_LOG" 2>&1
+  run_status=$?
+  set -e
+
+  if [[ $run_status -ne 0 ]]; then
+    echo "[FAIL] ${example}: run script exited ${run_status}" | tee -a "$EXAMPLES_LOG"
+    EXAMPLE_STATUS=1
+    continue
+  fi
+
+  if [[ ! -s "$result_path" ]]; then
+    echo "[FAIL] ${example}: missing/empty result file (${result_path})" | tee -a "$EXAMPLES_LOG"
+    EXAMPLE_STATUS=1
+    continue
+  fi
+
+  echo "[OK] ${example}" | tee -a "$EXAMPLES_LOG"
+done
+
+{
+  echo "Examples status: $EXAMPLE_STATUS"
+  echo "Examples log: $EXAMPLES_LOG"
+  echo
+} >> "$SUMMARY"
+
 popd >/dev/null
 
 cat "$SUMMARY"
 
-if [[ ${RUST_STATUS:-1} -ne 0 ]]; then
+if [[ ${RUST_STATUS:-1} -ne 0 || ${EXAMPLE_STATUS:-1} -ne 0 ]]; then
   echo "Rust test harness failed. See reports in $REPORT_DIR" >&2
   exit 1
 fi

@@ -65,6 +65,9 @@ cargo run -- run --rules ./examples/rules.xlsx --facts ./examples/sample-facts.j
 Reports are written to `reports/tests/`:
 - `summary.txt`
 - `cargo-test.log`
+- `examples.log`
+
+The harness also executes every example `run.sh` and validates that each produces a non-empty `result.json`.
 
 ## Example Harness: DecisionTable
 
