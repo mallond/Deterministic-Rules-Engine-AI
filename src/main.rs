@@ -45,12 +45,28 @@ struct Rule {
     id: String,
     enabled: bool,
     order: i64,
+    rule_type: RuleType,
     field: String,
     op: Operator,
     value: Value,
     action: Action,
+    score: i64,
     message: Option<String>,
     next_rule: Option<String>,
+    next_true: Option<String>,
+    next_false: Option<String>,
+}
+
+#[derive(Debug, Clone)]
+enum RuleType {
+    DecisionTable,
+    DecisionTree,
+    IfThen,
+    Scorecard,
+    Constraint,
+    Validation,
+    Eca,
+    Flow,
 }
 
 #[derive(Debug, Clone)]
@@ -80,6 +96,7 @@ struct EngineResult {
     status: String,
     fired_rules: Vec<String>,
     messages: Vec<String>,
+    total_score: i64,
     context: HashMap<String, Value>,
 }
 
@@ -123,7 +140,9 @@ fn load_rules(path: &str) -> Result<Vec<Rule>> {
     {
         "xlsx" | "xlsm" | "xls" => load_rules_from_excel(path),
         "json" => load_rules_from_json(path),
-        other => Err(anyhow!("Unsupported rules format: {other}. Use .xlsx or .json")),
+        other => Err(anyhow!(
+            "Unsupported rules format: {other}. Use .xlsx or .json"
+        )),
     }
 }
 
@@ -133,30 +152,37 @@ fn load_rules_from_json(path: &str) -> Result<Vec<Rule>> {
         id: String,
         enabled: Option<bool>,
         order: i64,
+        rule_type: Option<String>,
         field: String,
         op: String,
         value: Value,
         action: String,
+        score: Option<i64>,
         message: Option<String>,
         next_rule: Option<String>,
+        next_true: Option<String>,
+        next_false: Option<String>,
     }
 
     let raw = fs::read_to_string(path).with_context(|| format!("reading {path}"))?;
     let rows: Vec<RuleRow> = serde_json::from_str(&raw).context("invalid rules JSON")?;
 
-    rows
-        .into_iter()
+    rows.into_iter()
         .map(|row| {
             Ok(Rule {
                 id: row.id,
                 enabled: row.enabled.unwrap_or(true),
                 order: row.order,
+                rule_type: parse_rule_type(row.rule_type.as_deref().unwrap_or("if_then"))?,
                 field: row.field,
                 op: parse_operator(&row.op)?,
                 value: row.value,
                 action: parse_action(&row.action)?,
+                score: row.score.unwrap_or(0),
                 message: row.message,
                 next_rule: row.next_rule,
+                next_true: row.next_true,
+                next_false: row.next_false,
             })
         })
         .collect()
@@ -194,6 +220,7 @@ fn load_rules_from_excel(path: &str) -> Result<Vec<Rule>> {
         if row.iter().all(cell_is_empty) {
             continue;
         }
+
         let get = |name: &str| -> Result<&Data> {
             let idx = *header_map
                 .get(name)
@@ -205,10 +232,23 @@ fn load_rules_from_excel(path: &str) -> Result<Vec<Rule>> {
         let id = cell_to_string(get("id")?).trim().to_string();
         let enabled = parse_bool(get("enabled")?)?;
         let order = parse_i64(get("order")?)?;
+        let rule_type = header_map
+            .get("rule_type")
+            .and_then(|idx| row.get(*idx))
+            .map(cell_to_string)
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .unwrap_or_else(|| "if_then".to_string());
         let field = cell_to_string(get("field")?).trim().to_string();
         let op = parse_operator(cell_to_string(get("op")?).trim())?;
         let value = parse_value(cell_to_string(get("value")?).trim());
         let action = parse_action(cell_to_string(get("action")?).trim())?;
+        let score = header_map
+            .get("score")
+            .and_then(|idx| row.get(*idx))
+            .map(parse_i64)
+            .transpose()?
+            .unwrap_or(0);
         let message = header_map
             .get("message")
             .and_then(|idx| row.get(*idx))
@@ -221,17 +261,33 @@ fn load_rules_from_excel(path: &str) -> Result<Vec<Rule>> {
             .map(cell_to_string)
             .map(|s| s.trim().to_string())
             .filter(|s| !s.is_empty());
+        let next_true = header_map
+            .get("next_true")
+            .and_then(|idx| row.get(*idx))
+            .map(cell_to_string)
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
+        let next_false = header_map
+            .get("next_false")
+            .and_then(|idx| row.get(*idx))
+            .map(cell_to_string)
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty());
 
         out.push(Rule {
             id,
             enabled,
             order,
+            rule_type: parse_rule_type(&rule_type)?,
             field,
             op,
             value,
             action,
+            score,
             message,
             next_rule,
+            next_true,
+            next_false,
         });
     }
 
@@ -264,15 +320,12 @@ fn execute_rules(
         return Err(anyhow!("No enabled rules to execute"));
     }
 
-    let mut current = start_rule.or_else(|| {
-        by_id
-            .values()
-            .min_by_key(|r| r.order)
-            .map(|r| r.id.clone())
-    });
+    let mut current =
+        start_rule.or_else(|| by_id.values().min_by_key(|r| r.order).map(|r| r.id.clone()));
 
     let mut fired_rules = Vec::new();
     let mut messages = Vec::new();
+    let mut total_score = 0_i64;
     let mut status = "NO_MATCH".to_string();
     let context = facts.clone();
 
@@ -282,27 +335,35 @@ fn execute_rules(
             .ok_or_else(|| anyhow!("Unknown rule id: {rule_id}"))?;
 
         let candidate = facts.get(&rule.field).cloned().unwrap_or(Value::Null);
-        if eval(&candidate, &rule.op, &rule.value)? {
+        let matched = eval(&candidate, &rule.op, &rule.value)?;
+
+        if matched {
             fired_rules.push(rule.id.clone());
             if let Some(msg) = &rule.message {
                 messages.push(msg.clone());
             }
 
-            status = match rule.action {
-                Action::Approve => "APPROVED",
-                Action::Reject => "REJECTED",
-                Action::Review => "REVIEW",
-                Action::Continue => "CONTINUE",
+            if matches!(rule.rule_type, RuleType::Scorecard) {
+                total_score += rule.score;
+                status = "SCORECARD".to_string();
             }
-            .to_string();
 
-            current = rule.next_rule.clone();
+            if !matches!(rule.action, Action::Continue) {
+                status = match rule.action {
+                    Action::Approve => "APPROVED",
+                    Action::Reject => "REJECTED",
+                    Action::Review => "REVIEW",
+                    Action::Continue => "CONTINUE",
+                }
+                .to_string();
+            }
+
+            current = next_on_true(rule, &by_id);
             if !matches!(rule.action, Action::Continue) && current.is_none() {
                 break;
             }
         } else {
-            let next = next_by_order(&by_id, rule.order);
-            current = next;
+            current = next_on_false(rule, &by_id);
         }
     }
 
@@ -310,8 +371,33 @@ fn execute_rules(
         status,
         fired_rules,
         messages,
+        total_score,
         context,
     })
+}
+
+fn next_on_true(rule: &Rule, by_id: &HashMap<String, Rule>) -> Option<String> {
+    match rule.rule_type {
+        RuleType::DecisionTree => rule
+            .next_true
+            .clone()
+            .or_else(|| rule.next_rule.clone())
+            .or_else(|| next_by_order(by_id, rule.order)),
+        _ => rule
+            .next_rule
+            .clone()
+            .or_else(|| next_by_order(by_id, rule.order)),
+    }
+}
+
+fn next_on_false(rule: &Rule, by_id: &HashMap<String, Rule>) -> Option<String> {
+    match rule.rule_type {
+        RuleType::DecisionTree => rule
+            .next_false
+            .clone()
+            .or_else(|| next_by_order(by_id, rule.order)),
+        _ => next_by_order(by_id, rule.order),
+    }
 }
 
 fn next_by_order(by_id: &HashMap<String, Rule>, order: i64) -> Option<String> {
@@ -340,6 +426,20 @@ fn eval(left: &Value, op: &Operator, right: &Value) -> Result<bool> {
             arr.contains(left)
         }
     })
+}
+
+fn parse_rule_type(rule_type: &str) -> Result<RuleType> {
+    match rule_type.trim().to_ascii_lowercase().as_str() {
+        "decision_table" | "decisiontable" | "table" => Ok(RuleType::DecisionTable),
+        "decision_tree" | "decisiontree" | "tree" => Ok(RuleType::DecisionTree),
+        "if_then" | "ifthen" | "production" => Ok(RuleType::IfThen),
+        "scorecard" => Ok(RuleType::Scorecard),
+        "constraint" => Ok(RuleType::Constraint),
+        "validation" => Ok(RuleType::Validation),
+        "eca" | "event_condition_action" => Ok(RuleType::Eca),
+        "flow" => Ok(RuleType::Flow),
+        _ => Err(anyhow!("Unsupported rule_type: {rule_type}")),
+    }
 }
 
 fn parse_operator(op: &str) -> Result<Operator> {
@@ -432,7 +532,9 @@ fn cell_is_empty(cell: &Data) -> bool {
 
 fn to_f64(v: &Value) -> Result<f64> {
     match v {
-        Value::Number(n) => n.as_f64().ok_or_else(|| anyhow!("number not f64 compatible")),
+        Value::Number(n) => n
+            .as_f64()
+            .ok_or_else(|| anyhow!("number not f64 compatible")),
         Value::String(s) => s.parse::<f64>().map_err(|_| anyhow!("not numeric: {s}")),
         _ => Err(anyhow!("not numeric: {v}")),
     }
@@ -443,18 +545,19 @@ fn to_str(v: &Value) -> Result<&str> {
 }
 
 fn scaffold(out_dir: &str) -> Result<()> {
-    let template = "id,enabled,order,field,op,value,action,message,next_rule
-income_high,true,10,annual_income,gt,100000,continue,Income is high,credit_good
-credit_good,true,20,credit_score,gte,700,approve,Strong profile,
-credit_low,true,30,credit_score,lt,620,reject,Credit score too low,
-fallback_review,true,40,requested_amount,gt,250000,review,Large amount - send to manual review,
+    let template = "id,enabled,order,rule_type,field,op,value,action,score,message,next_rule,next_true,next_false
+income_high,true,10,decision_table,annual_income,gt,100000,continue,0,Income is high,credit_good,,
+credit_good,true,20,if_then,credit_score,gte,700,approve,0,Strong profile,,,
+credit_low,true,30,validation,credit_score,lt,620,reject,0,Credit score too low,,,
+fallback_review,true,40,flow,requested_amount,gt,250000,review,0,Large amount - send to manual review,,,
 ";
 
     let sample_facts = json!({
       "annual_income": 120000,
       "credit_score": 735,
       "requested_amount": 180000,
-      "loan_type": "mortgage"
+      "loan_type": "mortgage",
+      "_event": "application_submitted"
     });
 
     fs::create_dir_all(out_dir)?;
@@ -465,4 +568,166 @@ fallback_review,true,40,requested_amount,gt,250000,review,Large amount - send to
     )?;
 
     Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn facts(input: Value) -> HashMap<String, Value> {
+        input
+            .as_object()
+            .expect("facts object")
+            .iter()
+            .map(|(k, v)| (k.clone(), v.clone()))
+            .collect()
+    }
+
+    #[test]
+    fn supports_if_then_and_decision_table_flow() {
+        let rules = vec![
+            Rule {
+                id: "income_high".into(),
+                enabled: true,
+                order: 10,
+                rule_type: RuleType::DecisionTable,
+                field: "annual_income".into(),
+                op: Operator::Gt,
+                value: json!(100000),
+                action: Action::Continue,
+                score: 0,
+                message: Some("income ok".into()),
+                next_rule: Some("credit_good".into()),
+                next_true: None,
+                next_false: None,
+            },
+            Rule {
+                id: "credit_good".into(),
+                enabled: true,
+                order: 20,
+                rule_type: RuleType::IfThen,
+                field: "credit_score".into(),
+                op: Operator::Gte,
+                value: json!(700),
+                action: Action::Approve,
+                score: 0,
+                message: Some("credit ok".into()),
+                next_rule: None,
+                next_true: None,
+                next_false: None,
+            },
+        ];
+
+        let result = execute_rules(
+            rules,
+            facts(json!({"annual_income": 120000, "credit_score": 730})),
+            None,
+        )
+        .expect("execution should pass");
+
+        assert_eq!(result.status, "APPROVED");
+        assert_eq!(result.fired_rules, vec!["income_high", "credit_good"]);
+    }
+
+    #[test]
+    fn supports_decision_tree_branching() {
+        let rules = vec![
+            Rule {
+                id: "root".into(),
+                enabled: true,
+                order: 10,
+                rule_type: RuleType::DecisionTree,
+                field: "credit_score".into(),
+                op: Operator::Gte,
+                value: json!(700),
+                action: Action::Continue,
+                score: 0,
+                message: None,
+                next_rule: None,
+                next_true: Some("approve".into()),
+                next_false: Some("reject".into()),
+            },
+            Rule {
+                id: "approve".into(),
+                enabled: true,
+                order: 20,
+                rule_type: RuleType::Flow,
+                field: "credit_score".into(),
+                op: Operator::Gte,
+                value: json!(700),
+                action: Action::Approve,
+                score: 0,
+                message: None,
+                next_rule: None,
+                next_true: None,
+                next_false: None,
+            },
+            Rule {
+                id: "reject".into(),
+                enabled: true,
+                order: 30,
+                rule_type: RuleType::Flow,
+                field: "credit_score".into(),
+                op: Operator::Lt,
+                value: json!(700),
+                action: Action::Reject,
+                score: 0,
+                message: None,
+                next_rule: None,
+                next_true: None,
+                next_false: None,
+            },
+        ];
+
+        let result = execute_rules(rules, facts(json!({"credit_score": 640})), None)
+            .expect("execution should pass");
+        assert_eq!(result.status, "REJECTED");
+        assert_eq!(result.fired_rules, vec!["reject"]);
+    }
+
+    #[test]
+    fn supports_scorecard_rules() {
+        let rules = vec![
+            Rule {
+                id: "stable_income".into(),
+                enabled: true,
+                order: 10,
+                rule_type: RuleType::Scorecard,
+                field: "years_employed".into(),
+                op: Operator::Gte,
+                value: json!(3),
+                action: Action::Continue,
+                score: 30,
+                message: None,
+                next_rule: None,
+                next_true: None,
+                next_false: None,
+            },
+            Rule {
+                id: "low_dti".into(),
+                enabled: true,
+                order: 20,
+                rule_type: RuleType::Scorecard,
+                field: "dti".into(),
+                op: Operator::Lt,
+                value: json!(0.4),
+                action: Action::Continue,
+                score: 40,
+                message: None,
+                next_rule: None,
+                next_true: None,
+                next_false: None,
+            },
+        ];
+
+        let result = execute_rules(
+            rules,
+            facts(json!({"years_employed": 5, "dti": 0.32})),
+            None,
+        )
+        .expect("execution should pass");
+
+        assert_eq!(result.total_score, 70);
+        assert_eq!(result.status, "SCORECARD");
+    }
 }
