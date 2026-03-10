@@ -199,13 +199,20 @@ Run it:
 
 Result JSON is written to `Flow/result.json`.
 
-## Docs UI: Decision Table
+## Docs UI: Decision Table (Rust → WASM)
 
 A lightweight browser UI concept is included in `docs/` and published via GitHub Pages.
+The rules execution is powered by a Rust WASM module in `wasm-engine/`.
 
 Live URL: http://mallond.github.io/Deterministic-Rules-Engine-AI/
 
-Run it locally:
+Build/update the WASM bundle:
+
+```bash
+./docs/build-wasm.sh
+```
+
+Run locally:
 
 ```bash
 ./docs/run-ui.sh

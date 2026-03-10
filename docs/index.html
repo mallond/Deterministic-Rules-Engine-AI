@@ -62,7 +62,9 @@
     <pre id="output"></pre>
   </div>
 
-  <script>
+  <script type="module">
+    import init, { run_rules_json } from "./pkg/wasm_engine.js";
+
     const rules = [
       { id: "income_check", enabled: true, order: 10, field: "annual_income", op: "gte", value: 100000, action: "continue", message: "Income meets preferred threshold", next_rule: "credit_check" },
       { id: "credit_check", enabled: true, order: 20, field: "credit_score", op: "gte", value: 700, action: "approve", message: "Credit score strong" },
@@ -82,49 +84,12 @@
       return Number.isNaN(n) ? v : n;
     }
 
-    function evalRule(left, op, right) {
-      switch (op) {
-        case "eq": return left === right;
-        case "ne": return left !== right;
-        case "gt": return Number(left) > Number(right);
-        case "gte": return Number(left) >= Number(right);
-        case "lt": return Number(left) < Number(right);
-        case "lte": return Number(left) <= Number(right);
-        case "contains": return String(left).includes(String(right));
-        case "starts_with": return String(left).startsWith(String(right));
-        case "ends_with": return String(left).endsWith(String(right));
-        default: return false;
-      }
+    function renderStatus(status) {
+      const cls = status === "APPROVE" ? "ok" : (status === "REVIEW" ? "warn" : (status === "REJECT" ? "bad" : ""));
+      document.getElementById("statusLine").innerHTML = `<span class="badge ${cls}">Status: ${status}</span>`;
     }
 
-    function runEngine(facts) {
-      const byId = new Map(rules.filter(r => r.enabled).map(r => [r.id, r]));
-      const sorted = [...byId.values()].sort((a, b) => a.order - b.order);
-      let current = sorted[0]?.id;
-      let status = "NO_MATCH";
-      const fired_rules = [];
-      const messages = [];
-
-      while (current) {
-        const rule = byId.get(current);
-        if (!rule) break;
-
-        const candidate = facts[rule.field] ?? null;
-        if (evalRule(candidate, rule.op, rule.value)) {
-          fired_rules.push(rule.id);
-          if (rule.message) messages.push(rule.message);
-          if (rule.action !== "continue") {
-            status = rule.action.toUpperCase();
-            break;
-          }
-          current = rule.next_rule || sorted.find(r => r.order > rule.order)?.id || null;
-        } else {
-          current = sorted.find(r => r.order > rule.order)?.id || null;
-        }
-      }
-
-      return { status, fired_rules, messages, context: facts };
-    }
+    await init();
 
     document.getElementById("runBtn").addEventListener("click", () => {
       const facts = {
@@ -134,11 +99,15 @@
         loan_type: document.getElementById("loan_type").value
       };
 
-      const result = runEngine(facts);
-      document.getElementById("output").textContent = JSON.stringify(result, null, 2);
-
-      const cls = result.status === "APPROVE" ? "ok" : (result.status === "REVIEW" ? "warn" : (result.status === "REJECT" ? "bad" : ""));
-      document.getElementById("statusLine").innerHTML = `<span class="badge ${cls}">Status: ${result.status}</span>`;
+      try {
+        const resultText = run_rules_json(JSON.stringify(rules), JSON.stringify(facts));
+        const result = JSON.parse(resultText);
+        document.getElementById("output").textContent = resultText;
+        renderStatus(result.status);
+      } catch (err) {
+        document.getElementById("output").textContent = String(err);
+        renderStatus("ERROR");
+      }
     });
 
     document.getElementById("runBtn").click();
