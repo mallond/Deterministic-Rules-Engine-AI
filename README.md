@@ -221,3 +221,37 @@ Run locally:
 Then open `http://localhost:8787`.
 
 Use the form inputs and click **Run Decision Table** to execute the sample decision table and see output instantly.
+
+## WASM Engine Reuse + Versioning Strategy
+
+The web runtime is split into two layers:
+
+1. **Engine runtime (versioned, stable)**
+   - `docs/pkg/wasm_engine.js`
+   - `docs/pkg/wasm_engine_bg.wasm`
+2. **Rule/data payloads (frequently changed)**
+   - Decision tables / trees / scorecards in JSON (or Excel-exported JSON)
+   - Facts/input datasets in JSON
+
+### Why this split matters
+
+- **Deterministic behavior**: Browser execution uses compiled Rust logic, not a separate JS reimplementation.
+- **Single source of truth**: CLI and web can share the same core engine semantics.
+- **Safer change management**: Business teams update rules/data without rebuilding engine binaries.
+- **Traceable QA**: Test vectors can be pinned to `engine version + rule version`.
+- **Faster iteration**: Rule tuning can ship independently from engine code changes.
+
+### Recommended versioning model
+
+- Engine: semantic versioning (e.g., `engine v1.2.0`)
+- Rules: domain/date or semantic tags (e.g., `mortgage-rules-v2026.03.10`)
+- Optional compatibility metadata in rule packs:
+  - `engine_min`
+  - `engine_max`
+
+### Operating model
+
+- Rebuild WASM only when engine logic changes.
+- Keep rule/data files external and versioned separately.
+- Run deterministic QA against each promoted rule pack.
+- Promote rule packs to production only after passing the test harness.
