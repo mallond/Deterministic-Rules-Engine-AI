@@ -1,0 +1,7 @@
+{
+  "applicant_id": "APP-7001",
+  "_event": "application_submitted",
+  "requested_amount": 190000,
+  "credit_score": 705,
+  "loan_type": "mortgage"
+}

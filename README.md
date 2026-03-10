@@ -161,3 +161,19 @@ Run it:
 ```
 
 Result JSON is written to `Validation/result.json`.
+
+## Example Harness: ECA
+
+A runnable Event–Condition–Action example is included in `ECA/`:
+
+- `ECA/rules.json`
+- `ECA/facts.json`
+- `ECA/run.sh`
+
+Run it:
+
+```bash
+./ECA/run.sh
+```
+
+Result JSON is written to `ECA/result.json`.
