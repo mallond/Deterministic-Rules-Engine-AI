@@ -1,0 +1,16 @@
+{
+  "status": "APPROVED",
+  "fired_rules": [
+    "auto_approve_step"
+  ],
+  "messages": [
+    "Flow outcome: auto-approve"
+  ],
+  "total_score": 0,
+  "context": {
+    "loan_type": "mortgage",
+    "credit_score": 710,
+    "requested_amount": 180000,
+    "applicant_id": "APP-8001"
+  }
+}

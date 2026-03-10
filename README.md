@@ -177,3 +177,19 @@ Run it:
 ```
 
 Result JSON is written to `ECA/result.json`.
+
+## Example Harness: Flow
+
+A runnable flow-rules example is included in `Flow/`:
+
+- `Flow/rules.json`
+- `Flow/facts.json`
+- `Flow/run.sh`
+
+Run it:
+
+```bash
+./Flow/run.sh
+```
+
+Result JSON is written to `Flow/result.json`.
