@@ -1,4 +1,53 @@
-## The World's Smallest Rules Engine  
+## The World's Smallest Rules Engine
+
+## Rust CLI Upgrade (Excel-First)
+
+This repo now includes a Rust-based CLI (`rules-cli`) designed for complex, spreadsheet-managed rules and native executable builds.
+
+### What’s new
+- Excel-backed rule loading (`.xlsx`) for business-managed rule tables
+- JSON-backed fallback for rules-as-code workflows
+- CLI-driven execution (`run`) for terminal/CI use
+- Scaffold command to generate a starter rule template + sample facts
+- Native executable output via `cargo build --release`
+
+### Rule sheet columns
+Use the first worksheet with these headers:
+
+- `id` (string, unique)
+- `enabled` (true/false)
+- `order` (number, execution priority)
+- `field` (facts key)
+- `op` (`eq`, `ne`, `gt`, `gte`, `lt`, `lte`, `contains`, `starts_with`, `ends_with`, `in`)
+- `value` (literal value or JSON array for `in`)
+- `action` (`continue`, `approve`, `reject`, `review`)
+- `message` (optional)
+- `next_rule` (optional explicit rule-chain jump)
+
+### Quick start
+
+```bash
+# 1) Build CLI
+cargo build --release
+
+# 2) Generate template files
+cargo run -- scaffold --out-dir ./examples
+# Open examples/rules-template.csv in Excel, edit rules, save as .xlsx
+
+# 3) Execute with facts JSON
+cargo run -- run --rules ./examples/rules.xlsx --facts ./examples/sample-facts.json
+```
+
+### Build executable
+
+```bash
+cargo build --release
+./target/release/rules-cli run --rules ./examples/rules.xlsx --facts ./examples/sample-facts.json
+```
+
+---
+
+## Legacy TypeScript Engine (kept for reference)
 
 A small functional Rule Engine - simple maybe an understatement... 
 
