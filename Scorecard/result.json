@@ -1,0 +1,21 @@
+{
+  "status": "SCORECARD",
+  "fired_rules": [
+    "score_income",
+    "score_credit",
+    "score_dti"
+  ],
+  "messages": [
+    "Income score +40",
+    "Credit score +35",
+    "DTI score +25"
+  ],
+  "total_score": 100,
+  "context": {
+    "loan_type": "mortgage",
+    "credit_score": 740,
+    "annual_income": 125000,
+    "dti": 0.31,
+    "applicant_id": "APP-4001"
+  }
+}

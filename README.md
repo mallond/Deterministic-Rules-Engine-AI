@@ -113,3 +113,19 @@ Run it:
 ```
 
 Result JSON is written to `ifThen/result.json`.
+
+## Example Harness: Scorecard
+
+A runnable scorecard example is included in `Scorecard/`:
+
+- `Scorecard/rules.json`
+- `Scorecard/facts.json`
+- `Scorecard/run.sh`
+
+Run it:
+
+```bash
+./Scorecard/run.sh
+```
+
+Result JSON is written to `Scorecard/result.json`.
