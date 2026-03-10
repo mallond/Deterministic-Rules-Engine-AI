@@ -378,10 +378,10 @@ fn parse_value(raw: &str) -> Value {
     if let Ok(i) = raw.parse::<i64>() {
         return Value::Number(Number::from(i));
     }
-    if let Ok(f) = raw.parse::<f64>()
-        && let Some(n) = Number::from_f64(f)
-    {
-        return Value::Number(n);
+    if let Ok(f) = raw.parse::<f64>() {
+        if let Some(n) = Number::from_f64(f) {
+            return Value::Number(n);
+        }
     }
     if let Ok(b) = raw.parse::<bool>() {
         return Value::Bool(b);
