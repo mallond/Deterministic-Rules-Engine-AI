@@ -12,10 +12,10 @@
   ],
   "total_score": 100,
   "context": {
+    "applicant_id": "APP-4001",
+    "annual_income": 125000,
     "loan_type": "mortgage",
     "credit_score": 740,
-    "annual_income": 125000,
-    "dti": 0.31,
-    "applicant_id": "APP-4001"
+    "dti": 0.31
   }
 }

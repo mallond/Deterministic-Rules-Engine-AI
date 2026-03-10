@@ -12,9 +12,9 @@
   ],
   "total_score": 0,
   "context": {
+    "annual_income": 110000,
     "applicant_id": "APP-2001",
     "credit_score": 740,
-    "annual_income": 110000,
     "loan_type": "mortgage",
     "requested_amount": 220000
   }

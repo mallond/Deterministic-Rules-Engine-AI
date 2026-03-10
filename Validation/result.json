@@ -10,9 +10,9 @@
   ],
   "total_score": 0,
   "context": {
-    "email": "applicant@example.com",
-    "loan_type": "mortgage",
+    "ssn": "123-45-6789",
     "applicant_id": "APP-6001",
-    "ssn": "123-45-6789"
+    "email": "applicant@example.com",
+    "loan_type": "mortgage"
   }
 }

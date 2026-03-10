@@ -9,8 +9,8 @@
   "total_score": 0,
   "context": {
     "loan_type": "mortgage",
-    "credit_score": 710,
     "requested_amount": 180000,
+    "credit_score": 710,
     "applicant_id": "APP-8001"
   }
 }

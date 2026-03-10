@@ -10,10 +10,10 @@
   ],
   "total_score": 0,
   "context": {
-    "requested_amount": 190000,
     "_event": "application_submitted",
-    "applicant_id": "APP-7001",
     "credit_score": 705,
-    "loan_type": "mortgage"
+    "loan_type": "mortgage",
+    "requested_amount": 190000,
+    "applicant_id": "APP-7001"
   }
 }

@@ -8,10 +8,10 @@
   ],
   "total_score": 0,
   "context": {
+    "requested_amount": 120000,
     "customer_tier": "vip",
     "applicant_id": "APP-3001",
-    "credit_score": 680,
     "loan_type": "personal",
-    "requested_amount": 120000
+    "credit_score": 680
   }
 }
