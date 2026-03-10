@@ -8,7 +8,9 @@
   "scripts": {
     "build": "tsc",
     "copy-files": "copyfiles -u 1 src/**/*.json dist/",
-    "postbuild": "npm run copy-files"
+    "postbuild": "npm run copy-files",
+    "test:ts": "jest --runInBand --passWithNoTests",
+    "test:harness": "./scripts/test-harness.sh"
   },
   "devDependencies": {
     "@types/jest": "^29.5.12",

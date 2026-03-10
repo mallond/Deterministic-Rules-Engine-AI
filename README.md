@@ -60,6 +60,21 @@ cargo build --release
 ./target/release/rules-cli run --rules ./examples/rules.xlsx --facts ./examples/sample-facts.json
 ```
 
+### Unified test harness
+
+Run all tests (Rust + TypeScript/Jest) with one command:
+
+```bash
+./scripts/test-harness.sh
+# or
+npm run test:harness
+```
+
+Reports are written to `reports/tests/`:
+- `summary.txt`
+- `cargo-test.log`
+- `jest-results.json`
+
 ---
 
 ## Legacy TypeScript Engine (kept for reference)

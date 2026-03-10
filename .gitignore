@@ -3,3 +3,5 @@ node_modules
 .DS_Store
 dist
 target
+reports/
+.npm-cache/
