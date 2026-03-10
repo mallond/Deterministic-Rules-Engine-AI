@@ -1,4 +1,5 @@
 ## Rules CLI (Rust, Excel-First)
+<img width="1536" height="1024" alt="ChatGPT Image Mar 10, 2026, 02_25_48 PM" src="https://github.com/user-attachments/assets/fcb25b9e-f1ca-4bbe-b2e8-9bb2d3dee7e6" />
 
 A Rust-based rules engine focused on spreadsheet-managed business rules and compiled native executables.
 
