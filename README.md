@@ -203,6 +203,8 @@ Result JSON is written to `Flow/result.json`.
 
 A lightweight browser UI concept is included in `docs/` and published via GitHub Pages.
 
+Live URL: http://mallond.github.io/Deterministic-Rules-Engine-AI/
+
 Run it locally:
 
 ```bash
