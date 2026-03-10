@@ -65,3 +65,19 @@ cargo run -- run --rules ./examples/rules.xlsx --facts ./examples/sample-facts.j
 Reports are written to `reports/tests/`:
 - `summary.txt`
 - `cargo-test.log`
+
+## Example Harness: DecisionTable
+
+A runnable example is included in `DecisionTable/`:
+
+- `DecisionTable/rules.json`
+- `DecisionTable/facts.json`
+- `DecisionTable/run.sh`
+
+Run it:
+
+```bash
+./DecisionTable/run.sh
+```
+
+Result JSON is written to `DecisionTable/result.json`.
